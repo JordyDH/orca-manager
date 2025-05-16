@@ -1,0 +1,8 @@
+{
+    "from": "User",
+    "inherits": "RatRig V-Core 4 IDEX 500 COPY MODE 0.6 nozzle",
+    "is_custom_defined": "0",
+    "name": "(ON) VC4-1 IDEX 500 COPY MODE 0.6 nozzle",
+    "printer_settings_id": "(ON) VC4-1 IDEX 500 COPY MODE 0.6 nozzle",
+    "version": "2.3.0.3"
+}

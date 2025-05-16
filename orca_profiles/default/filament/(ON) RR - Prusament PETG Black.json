@@ -1,0 +1,72 @@
+{
+    "adaptive_pressure_advance": [
+        "1"
+    ],
+    "adaptive_pressure_advance_model": [
+        "0.035,35.1,5000\n0.040,29,2,5000\n0.045,17.5,5000\n0.030,35.1,7000\n0.035,29,2,7000\n0.050,17.5,7000"
+    ],
+    "compatible_printers": [
+        "(ON) VC4-1 IDEX 500 0.6 nozzle",
+        "(ON) VC4-1 IDEX 500 COPY MODE 0.6 nozzle",
+        "(ON) VC4-1 IDEX 500 MIRROR MODE 0.6 nozzle"
+    ],
+    "fan_cooling_layer_time": [
+        "8"
+    ],
+    "fan_max_speed": [
+        "35"
+    ],
+    "fan_min_speed": [
+        "20"
+    ],
+    "filament_flow_ratio": [
+        "0.925"
+    ],
+    "filament_max_volumetric_speed": [
+        "20"
+    ],
+    "filament_retraction_length": [
+        "0.5"
+    ],
+    "filament_settings_id": [
+        "(ON) RR - Prusament PETG Black"
+    ],
+    "filament_z_hop": [
+        "nil"
+    ],
+    "from": "User",
+    "inherits": "Prusament PETG Black @RatRig V-Core 4 500 0.6 nozzle",
+    "internal_bridge_fan_speed": [
+        "20"
+    ],
+    "is_custom_defined": "0",
+    "name": "(ON) RR - Prusament PETG Black",
+    "nozzle_temperature": [
+        "260"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "265"
+    ],
+    "nozzle_temperature_range_high": [
+        "260"
+    ],
+    "overhang_fan_speed": [
+        "45"
+    ],
+    "overhang_fan_threshold": [
+        "50%"
+    ],
+    "pressure_advance": [
+        "0.035"
+    ],
+    "slow_down_for_layer_cooling": [
+        "0"
+    ],
+    "slow_down_layer_time": [
+        "3"
+    ],
+    "slow_down_min_speed": [
+        "25"
+    ],
+    "version": "2.3.0.3"
+}

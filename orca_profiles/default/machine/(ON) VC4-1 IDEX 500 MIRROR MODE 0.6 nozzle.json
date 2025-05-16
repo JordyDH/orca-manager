@@ -1,0 +1,26 @@
+{
+    "fan_kickstart": "0.3",
+    "fan_speedup_overhangs": "0",
+    "fan_speedup_time": "1",
+    "from": "User",
+    "inherits": "RatRig V-Core 4 IDEX 500 MIRROR MODE 0.6 nozzle",
+    "is_custom_defined": "0",
+    "machine_start_gcode": ";;heatsoak the system and gantry\nHEAT_SOAK TARGET=100 DURATION=60\nMAYBE_HOME\nIDEX_MIRROR\nSTART_PRINT EXTRUDER_TEMP={first_layer_temperature[0]},{first_layer_temperature[1]} EXTRUDER_OTHER_LAYER_TEMP={temperature[0]},{temperature[1]} BED_TEMP=[first_layer_bed_temperature] INITIAL_TOOL={initial_tool} TOTAL_LAYER_COUNT={total_layer_count} X0={first_layer_print_min[0]} Y0={first_layer_print_min[1]} X1={first_layer_print_max[0]} Y1={first_layer_print_max[1]}",
+    "name": "(ON) VC4-1 IDEX 500 MIRROR MODE 0.6 nozzle",
+    "nozzle_type": "hardened_steel",
+    "print_host": "http://192.168.30.201",
+    "printer_settings_id": "(ON) VC4-1 IDEX 500 MIRROR MODE 0.6 nozzle",
+    "retract_lift_below": [
+        "0",
+        "0"
+    ],
+    "version": "2.3.0.3",
+    "wipe": [
+        "0",
+        "0"
+    ],
+    "z_hop": [
+        "0.6",
+        "0.6"
+    ]
+}
