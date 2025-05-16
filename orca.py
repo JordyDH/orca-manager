@@ -12,6 +12,7 @@ ORCA_USER_ROOT = Path.home() / ".config" / "OrcaSlicer" / "user"
 ORCA_USER_PATH = ORCA_USER_ROOT / "default"
 LOCAL_ROOT = Path(__file__).parent
 LOCAL_PROFILE_PATH = LOCAL_ROOT / "orca_profiles" / "default"
+GIT_ROOT_PATH = LOCAL_ROOT
 BACKUP_PATH = LOCAL_ROOT / "backups"
 PROFILE_FOLDERS = ["filament", "machine", "process"]
 
@@ -57,6 +58,44 @@ def backup_profiles():
         copy_folder_recursive(src, dst)
         print(f"  📁 Backed up: {folder}/")
 
+def restore_backup():
+    print("🔁 Restoring a backup to OrcaSlicer...")
+    if not BACKUP_PATH.exists():
+        print("❌ No backup directory found.")
+        return
+
+    backups = sorted([d for d in BACKUP_PATH.iterdir() if d.is_dir()], reverse=True)
+    if not backups:
+        print("❌ No backups available to restore.")
+        return
+
+    print("Available backups:")
+    for idx, backup in enumerate(backups):
+        print(f"  [{idx}] {backup.name}")
+
+    try:
+        choice = int(input("Select a backup to restore by index: "))
+        selected_backup = backups[choice] / "default"
+    except (ValueError, IndexError):
+        print("❌ Invalid selection.")
+        return
+
+    print(f"⚠️  This will overwrite current OrcaSlicer profiles. Are you sure? (yes/no)")
+    confirm = input().strip().lower()
+    if confirm != "yes":
+        print("❌ Aborted.")
+        return
+
+    for folder in PROFILE_FOLDERS:
+        orca_dir = ORCA_USER_PATH / folder
+        backup_dir = selected_backup / folder
+
+        delete_all_profiles_in(orca_dir)
+        print(f"  🧹 Cleaned: {folder}/")
+
+        copy_folder_recursive(backup_dir, orca_dir)
+        print(f"  ✅ Restored: {folder}/")
+
 def orca_push():
     print("📤 Pushing local profiles to OrcaSlicer after backup...")
     backup_profiles()
@@ -65,26 +104,23 @@ def orca_push():
         orca_dir = ORCA_USER_PATH / folder
         local_dir = LOCAL_PROFILE_PATH / folder
 
-        # Clean all existing files
         delete_all_profiles_in(orca_dir)
         print(f"  🧹 Cleaned: {folder}/")
 
-        # Push new files
         copy_folder_recursive(local_dir, orca_dir)
         print(f"  ✅ Pushed: {folder}/")
 
 def git_fetch():
-    print("🌐 Running `git fetch` in orca_profiles/default ...")
+    print("🌐 Running `git fetch` in tool root folder ...")
 
-    git_folder = LOCAL_PROFILE_PATH
-    if not (git_folder / ".git").exists():
-        print(f"❌ Not a Git repository: {git_folder}")
+    if not (GIT_ROOT_PATH / ".git").exists():
+        print(f"❌ Not a Git repository: {GIT_ROOT_PATH}")
         return
 
     try:
         result = subprocess.run(
             ["git", "fetch"],
-            cwd=git_folder,
+            cwd=GIT_ROOT_PATH,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
@@ -97,7 +133,7 @@ def git_fetch():
 
 def git_push():
     print("🔒 Git push placeholder – this operation is disabled for safety.")
-    # This is where you'd later allow automated git pushes if needed
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -107,13 +143,14 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
 
     # Git-related
-    subparsers.add_parser("gitfetch", help="Run 'git fetch' in the orca_profiles folder")
+    subparsers.add_parser("gitfetch", help="Run 'git fetch' in the repo root")
     subparsers.add_parser("gitpush", help="(Disabled) Placeholder for pushing to Git")
 
     # Orca operations
     subparsers.add_parser("fetch", help="Fetch profiles from OrcaSlicer to local folder")
     subparsers.add_parser("push", help="Backup and push local profiles to OrcaSlicer")
     subparsers.add_parser("backup", help="Create a backup of current OrcaSlicer profiles")
+    subparsers.add_parser("restore", help="Interactively restore a backup to OrcaSlicer")
 
     args = parser.parse_args()
 
@@ -127,6 +164,8 @@ def main():
         orca_push()
     elif args.command == "backup":
         backup_profiles()
+    elif args.command == "restore":
+        restore_backup()
     elif args.command == "gitfetch":
         git_fetch()
     elif args.command == "gitpush":
