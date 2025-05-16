@@ -12,7 +12,7 @@ ORCA_USER_ROOT = Path.home() / ".config" / "OrcaSlicer" / "user"
 ORCA_USER_PATH = ORCA_USER_ROOT / "default"
 LOCAL_ROOT = Path(__file__).parent
 LOCAL_PROFILE_PATH = LOCAL_ROOT / "orca_profiles" / "default"
-GIT_ROOT_PATH = LOCAL_ROOT
+GIT_ROOT_PATH = LOCAL_ROOT / "orca_profiles"
 BACKUP_PATH = LOCAL_ROOT / "backups"
 PROFILE_FOLDERS = ["filament", "machine", "process"]
 
@@ -149,11 +149,7 @@ def orca_push_clean():
         print(f"  ✅ Synced without cleanup: {folder}/")
 
 def git_fetch():
-    print("🌐 Running `git fetch` in tool root folder ...")
-
-    if not (GIT_ROOT_PATH / ".git").exists():
-        print(f"❌ Not a Git repository: {GIT_ROOT_PATH}")
-        return
+    print("🌐 Running `git fetch` in tool profile folder ...")
 
     try:
         result = subprocess.run(
