@@ -16,17 +16,22 @@ GIT_ROOT_PATH = LOCAL_ROOT
 BACKUP_PATH = LOCAL_ROOT / "backups"
 PROFILE_FOLDERS = ["filament", "machine", "process"]
 
-def copy_folder_recursive(src: Path, dst: Path):
+def copy_folder_recursive(src: Path, dst: Path, match_filter: str = None):
     if not src.exists():
-        return
+        return []
+
+    copied_files = []
     for item in src.rglob("*"):
-        target_path = dst / item.relative_to(src)
         if item.is_dir():
-            target_path.mkdir(parents=True, exist_ok=True)
-        else:
-            target_path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(item, target_path)
-            print(f"    📄 Copied: {item.relative_to(src)}")
+            continue
+        if match_filter and match_filter.lower() not in item.name.lower():
+            continue
+
+        target_path = dst / item.relative_to(src)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(item, target_path)
+        copied_files.append(item.relative_to(src))
+    return copied_files
 
 def delete_all_profiles_in(folder: Path):
     if folder.exists():
@@ -40,12 +45,36 @@ def delete_all_profiles_in(folder: Path):
                     pass  # not empty
 
 def orca_fetch():
-    print("📅 Fetching profiles from OrcaSlicer to local git folder...")
+    match = input("Enter a name or part of a profile name to filter (press Enter for all): ").strip()
+
+    all_matches = {}
+    for folder in PROFILE_FOLDERS:
+        src = ORCA_USER_PATH / folder
+        files = [f.relative_to(src) for f in src.rglob("*") if f.is_file() and (match.lower() in f.name.lower() if match else True)]
+        if files:
+            all_matches[folder] = files
+
+    if not all_matches:
+        print("❌ No matching profiles found.")
+        return
+
+    print("🔍 The following files will be fetched:")
+    for folder, files in all_matches.items():
+        print(f"  {folder}/")
+        for f in files:
+            print(f"    📄 {f}")
+
+    confirm = input("Continue with fetch? (yes/no): ").strip().lower()
+    if confirm != "yes":
+        print("❌ Aborted.")
+        return
+
     for folder in PROFILE_FOLDERS:
         src = ORCA_USER_PATH / folder
         dst = LOCAL_PROFILE_PATH / folder
-        copy_folder_recursive(src, dst)
-        print(f"  ✅ Synced: {folder}/")
+        copied = copy_folder_recursive(src, dst, match_filter=match)
+        if copied:
+            print(f"  ✅ Synced {len(copied)} file(s) in {folder}/")
 
 def backup_profiles():
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
@@ -110,6 +139,15 @@ def orca_push():
         copy_folder_recursive(local_dir, orca_dir)
         print(f"  ✅ Pushed: {folder}/")
 
+def orca_push_clean():
+    print("📤 Cleaning and pushing ONLY the managed profiles to OrcaSlicer...")
+    for folder in PROFILE_FOLDERS:
+        orca_dir = ORCA_USER_PATH / folder
+        local_dir = LOCAL_PROFILE_PATH / folder
+
+        copy_folder_recursive(local_dir, orca_dir)
+        print(f"  ✅ Synced without cleanup: {folder}/")
+
 def git_fetch():
     print("🌐 Running `git fetch` in tool root folder ...")
 
@@ -134,7 +172,6 @@ def git_fetch():
 def git_push():
     print("🔒 Git push placeholder – this operation is disabled for safety.")
 
-
 def main():
     parser = argparse.ArgumentParser(
         description="🐳 Orca Manager CLI",
@@ -148,7 +185,8 @@ def main():
 
     # Orca operations
     subparsers.add_parser("fetch", help="Fetch profiles from OrcaSlicer to local folder")
-    subparsers.add_parser("push", help="Backup and push local profiles to OrcaSlicer")
+    subparsers.add_parser("push", help="Backup and push local profiles to OrcaSlicer (cleans destination)")
+    subparsers.add_parser("push-clean", help="Push local profiles to OrcaSlicer without deleting other user files")
     subparsers.add_parser("backup", help="Create a backup of current OrcaSlicer profiles")
     subparsers.add_parser("restore", help="Interactively restore a backup to OrcaSlicer")
 
@@ -162,6 +200,8 @@ def main():
         orca_fetch()
     elif args.command == "push":
         orca_push()
+    elif args.command == "push-clean":
+        orca_push_clean()
     elif args.command == "backup":
         backup_profiles()
     elif args.command == "restore":
