@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 # Constants
+ORCA_PATH = Path.home() / ".config" / "OrcaSlicer"
 ORCA_USER_ROOT = Path.home() / ".config" / "OrcaSlicer" / "user"
 ORCA_USER_PATH = ORCA_USER_ROOT / "default"
 LOCAL_ROOT = Path(__file__).parent

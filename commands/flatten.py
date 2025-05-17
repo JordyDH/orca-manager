@@ -2,29 +2,39 @@ import json
 from pathlib import Path
 import sys
 import orca  # Main CLI loader with run_command()
+from textwrap import wrap
 
-def build_name_index(filament_dir):
+def build_global_name_index(orca_root: Path):
+    """Index all JSON files under ORCA_PATH by their internal 'name' value."""
     name_map = {}
-    profiles = {}
-
-    for file in filament_dir.rglob("*.json"):
+    for file in orca_root.rglob("*.json"):
         try:
             with file.open("r", encoding="utf-8") as f:
                 data = json.load(f)
-                name = data.get("name")
-                if name:
-                    name_map[name] = file
-                    profiles[file.name] = data
+                profile_name = data.get("name")
+                if profile_name:
+                    name_map[profile_name] = file
         except Exception as e:
-            print(f"⚠️ Failed to read {file.name}: {e}")
-    return name_map, profiles
+            print(f"⚠️ Failed to parse {file}: {e}")
+    return name_map
 
-def flatten_inherited_profiles(name_map, profiles, filament_dir):
+def load_profiles_in_folder(folder: Path):
+    profiles = {}
+    for file in folder.rglob("*.json"):
+        try:
+            with file.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+                profiles[file.name] = data
+        except Exception as e:
+            print(f"⚠️ Could not load {file.name}: {e}")
+    return profiles
+
+def flatten_inherited_profiles(name_map, profiles):
     flattened_results = {}
     summary = []
 
     for filename, profile in profiles.items():
-        if "inherits" not in profile:
+        if "inherits" not in profile or not profile["inherits"].strip():
             continue
 
         inherits_from = profile["inherits"]
@@ -34,8 +44,12 @@ def flatten_inherited_profiles(name_map, profiles, filament_dir):
             print(f"⚠️ Skipping {filename}, base profile not found: {inherits_from}")
             continue
 
-        with base_file.open("r", encoding="utf-8") as bf:
-            base_data = json.load(bf)
+        try:
+            with base_file.open("r", encoding="utf-8") as bf:
+                base_data = json.load(bf)
+        except Exception as e:
+            print(f"⚠️ Cannot read inherited base {base_file}: {e}")
+            continue
 
         flattened = base_data.copy()
         flattened.update(profile)
@@ -53,36 +67,51 @@ def flatten_inherited_profiles(name_map, profiles, filament_dir):
     return summary, flattened_results
 
 def register(subparsers):
-    subparsers.add_parser("flatten", help="Make all inherited filament profiles standalone in OrcaSlicer")
+    subparsers.add_parser("flatten", help="Make inherited profiles standalone in OrcaSlicer")
 
 def run(args):
-    filament_dir = ORCA_USER_PATH / "filament"
-    name_index, profiles = build_name_index(filament_dir)
+    print("🔧 Flatten OrcaSlicer Profiles")
+    print("Available types: filament, machine, process")
+    profile_type = input("Select profile type to flatten: ").strip().lower()
 
-    summary, results = flatten_inherited_profiles(name_index, profiles, filament_dir)
-
-    if not summary:
-        print("✅ No inherited profiles found. Nothing to flatten.")
+    if profile_type not in PROFILE_FOLDERS:
+        print("❌ Invalid profile type selected.")
         return
 
-    print("\nThe following profiles will be flattened directly in OrcaSlicer:\n")
+    # Build global name → file index from all of ORCA_PATH
+    name_index = build_global_name_index(orca.ORCA_PATH)
+
+    # Load only profiles of the selected type (user folder only)
+    target_folder = ORCA_USER_PATH / profile_type
+    profiles = load_profiles_in_folder(target_folder)
+
+    # Identify flattenable profiles
+    summary, results = flatten_inherited_profiles(name_index, profiles)
+
+    if not summary:
+        print(f"✅ No inherited {profile_type} profiles found. Nothing to flatten.")
+        return
+
+    print(f"\nThe following {profile_type} profiles will be flattened directly in OrcaSlicer:\n")
     for item in summary:
         print(f"- {item['target']} (inherits: {item['inherits_from']})")
         if item['added_keys']:
-            print(f"  + Will include keys: {', '.join(item['added_keys'])}")
+            print("  + Will include keys:")
+            for line in wrap(", ".join(item['added_keys']), width=80):
+                print(f"    {line}")
 
     confirm = input("\nProceed with flattening and overwrite Orca files? (yes/no): ").strip().lower()
     if confirm != "yes":
         print("❌ Aborted.")
         return
 
-    # Backup Orca files first
+    # Backup all profiles before flattening
     orca.run_command("backup")
 
-    # Write flattened profiles directly into Orca user dir
+    # Write flattened profiles back to original user folder
     for filename, data in results.items():
-        file_path = filament_dir / filename
+        file_path = target_folder / filename
         with file_path.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
 
-    print("\n✅ Flattening complete. All files written directly to OrcaSlicer.")
+    print(f"\n✅ Flattening complete for {profile_type} profiles.")

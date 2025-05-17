@@ -1,11 +1,43 @@
 {
-    "bed_exclude_area": [],
-    "fan_kickstart": "0.3",
-    "fan_speedup_overhangs": "0",
-    "fan_speedup_time": "0.5",
+    "type": "machine",
+    "setting_id": "GM002",
+    "name": "(ON) VC4-1 IDEX 500 0.6 nozzle",
     "from": "User",
-    "inherits": "RatRig V-Core 4 IDEX 500 0.6 nozzle",
-    "is_custom_defined": "0",
+    "instantiation": "true",
+    "printer_model": "RatRig V-Core 4 IDEX 500",
+    "printer_variant": "0.6",
+    "nozzle_diameter": [
+        "0.6",
+        "0.6"
+    ],
+    "extruder_offset": [
+        "0x0",
+        "0x0"
+    ],
+    "manual_filament_change": "0",
+    "single_extruder_multi_material": "0",
+    "printable_area": [
+        "0x0",
+        "500x0",
+        "500x500",
+        "0x500"
+    ],
+    "machine_max_speed_x": [
+        "500",
+        "500"
+    ],
+    "machine_max_speed_y": [
+        "500",
+        "500"
+    ],
+    "machine_max_speed_z": [
+        "200",
+        "200"
+    ],
+    "machine_max_speed_e": [
+        "120",
+        "120"
+    ],
     "machine_max_acceleration_x": [
         "5000",
         "20000"
@@ -14,24 +46,96 @@
         "5000",
         "20000"
     ],
-    "machine_start_gcode": ";;heatsoak the system and gantry\nHEAT_SOAK TARGET=100 DURATION=15\n\nSTART_PRINT EXTRUDER_TEMP={first_layer_temperature[0]},{first_layer_temperature[1]} EXTRUDER_OTHER_LAYER_TEMP={temperature[0]},{temperature[1]} BED_TEMP=[first_layer_bed_temperature] INITIAL_TOOL={initial_tool} TOTAL_LAYER_COUNT={total_layer_count} X0={first_layer_print_min[0]} Y0={first_layer_print_min[1]} X1={first_layer_print_max[0]} Y1={first_layer_print_max[1]}",
-    "name": "(ON) VC4-1 IDEX 500 0.6 nozzle",
-    "nozzle_type": "hardened_steel",
-    "print_host": "http://192.168.30.201",
-    "printer_settings_id": "(ON) VC4-1 IDEX 500 0.6 nozzle",
+    "machine_max_acceleration_z": [
+        "200",
+        "200"
+    ],
+    "machine_max_acceleration_e": [
+        "5000",
+        "5000"
+    ],
+    "machine_max_acceleration_extruding": [
+        "20000",
+        "20000"
+    ],
+    "machine_max_acceleration_retracting": [
+        "20000",
+        "20000"
+    ],
+    "machine_max_acceleration_travel": [
+        "20000",
+        "20000"
+    ],
+    "machine_max_jerk_x": [
+        "5",
+        "5"
+    ],
+    "machine_max_jerk_y": [
+        "5",
+        "5"
+    ],
+    "machine_max_jerk_z": [
+        "0.4",
+        "0.4"
+    ],
+    "machine_max_jerk_e": [
+        "5",
+        "5"
+    ],
+    "min_layer_height": [
+        "0.1"
+    ],
+    "max_layer_height": [
+        "0.4"
+    ],
+    "extruder_clearance_radius": "45",
+    "extruder_clearance_height_to_rod": "25",
+    "extruder_clearance_height_to_lid": "140",
     "retract_lift_below": [
         "0",
         "0"
     ],
-    "time_cost": "60",
-    "time_lapse_gcode": "",
-    "version": "0.0.0.0",
+    "retraction_length": [
+        "0.8"
+    ],
+    "retraction_speed": [
+        "120"
+    ],
+    "deretraction_speed": [
+        "120"
+    ],
     "wipe": [
         "0",
         "0"
     ],
+    "retract_before_wipe": [
+        "70%"
+    ],
     "z_hop": [
         "0.6",
         "0.6"
-    ]
+    ],
+    "machine_start_gcode": ";;heatsoak the system and gantry\nHEAT_SOAK TARGET=100 DURATION=15\n\nSTART_PRINT EXTRUDER_TEMP={first_layer_temperature[0]},{first_layer_temperature[1]} EXTRUDER_OTHER_LAYER_TEMP={temperature[0]},{temperature[1]} BED_TEMP=[first_layer_bed_temperature] INITIAL_TOOL={initial_tool} TOTAL_LAYER_COUNT={total_layer_count} X0={first_layer_print_min[0]} Y0={first_layer_print_min[1]} X1={first_layer_print_max[0]} Y1={first_layer_print_max[1]}",
+    "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
+    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n_ON_LAYER_CHANGE LAYER={layer_num + 1}",
+    "change_filament_gcode": "",
+    "machine_pause_gcode": "PAUSE",
+    "printing_by_object_gcode": ";BETWEEN_OBJECTS\nG92 E0",
+    "printable_height": "500",
+    "time_lapse_gcode": "",
+    "thumbnails": [
+        "64x64/PNG",
+        "100x100/PNG",
+        "400x300/PNG"
+    ],
+    "bed_exclude_area": [],
+    "fan_kickstart": "0.3",
+    "fan_speedup_overhangs": "0",
+    "fan_speedup_time": "0.5",
+    "is_custom_defined": "0",
+    "nozzle_type": "hardened_steel",
+    "print_host": "http://192.168.30.201",
+    "printer_settings_id": "(ON) VC4-1 IDEX 500 0.6 nozzle",
+    "time_cost": "60",
+    "version": "0.0.0.0"
 }
