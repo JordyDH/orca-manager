@@ -1,0 +1,322 @@
+#!/usr/bin/env python3
+
+import argparse
+import shutil
+from pathlib import Path
+import sys
+from datetime import datetime
+import subprocess
+
+# Constants
+ORCA_USER_ROOT = Path.home() / ".config" / "OrcaSlicer" / "user"
+ORCA_USER_PATH = ORCA_USER_ROOT / "default"
+LOCAL_ROOT = Path(__file__).parent
+LOCAL_PROFILE_PATH = LOCAL_ROOT / "orca_profiles" / "default"
+GIT_ROOT_PATH = LOCAL_ROOT / "orca_profiles"
+BACKUP_PATH = LOCAL_ROOT / "backups"
+PROFILE_FOLDERS = ["filament", "machine", "process"]
+
+# Filter for managed profile naming (only copy files that include one of these parts)
+MANAGED_PROFILE_MARKERS = ["ODG_", "(ON)"]
+
+def copy_folder_recursive(src: Path, dst: Path, match_filter: str = None):
+    if not src.exists():
+        return []
+
+    copied_files = []
+    for item in src.rglob("*"):
+        if item.is_dir():
+            continue
+        if not any(marker in item.name for marker in MANAGED_PROFILE_MARKERS):
+            continue
+        if match_filter and match_filter.lower() not in item.name.lower():
+            continue
+
+        target_path = dst / item.relative_to(src)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(item, target_path)
+        copied_files.append(item.relative_to(src))
+    return copied_files
+
+def get_git_last_editor(file_path: Path):
+    try:
+        result = subprocess.run(
+            ["git", "log", "-1", "--pretty=format:%an", str(file_path)],
+            cwd=GIT_ROOT_PATH,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True
+        )
+        return result.stdout.strip() if result.stdout else None
+    except Exception:
+        return None
+
+def delete_all_profiles_in(folder: Path):
+    if folder.exists():
+        for item in folder.rglob("*"):
+            if item.is_file():
+                item.unlink()
+            elif item.is_dir():
+                try:
+                    item.rmdir()
+                except OSError:
+                    pass  # not empty
+
+def orca_list():
+    print("Listing managed profiles in OrcaSlicer:")
+    found = False
+    for folder in PROFILE_FOLDERS:
+        src = ORCA_USER_PATH / folder
+        files = [f for f in src.rglob("*") if f.is_file() and any(marker in f.name for marker in MANAGED_PROFILE_MARKERS)]
+        if files:
+            found = True
+            print("[{0}]".format(folder))
+            print("{:<60} {:<20} {:<20}".format("Filename", "Modified", "Last Edited By"))
+            print("-" * 100)
+            for f in sorted(files):
+                last_modified = datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+                rel_path = LOCAL_PROFILE_PATH / folder / f.name
+                git_info = get_git_last_editor(rel_path) or "-"
+                print("{:<60} {:<20} {:<20}".format(f.name[:57] + '...' if len(f.name) > 60 else f.name, last_modified, git_info))
+    if not found:
+        print("  No managed profiles found.")
+        print("  ❌ No managed profiles found.")
+
+def orca_fetch():
+    match = input("Enter a name or part of a profile name to filter (press Enter for all managed profiles): ").strip()
+
+    all_matches = {}
+    for folder in PROFILE_FOLDERS:
+        src = ORCA_USER_PATH / folder
+        files = [f.relative_to(src) for f in src.rglob("*")
+                 if f.is_file()
+                 and any(marker in f.name for marker in MANAGED_PROFILE_MARKERS)
+                 and (match.lower() in f.name.lower() if match else True)]
+        if files:
+            all_matches[folder] = files
+
+    if not all_matches:
+        print("❌ No matching profiles found.")
+        return
+
+    print("🔍 The following files will be fetched:")
+    for folder, files in all_matches.items():
+        print(f"  {folder}/")
+        for f in files:
+            print(f"    📄 {f}")
+
+    confirm = input("Continue with fetch? (yes/no): ").strip().lower()
+    if confirm != "yes":
+        print("❌ Aborted.")
+        return
+
+    for folder in PROFILE_FOLDERS:
+        src = ORCA_USER_PATH / folder
+        dst = LOCAL_PROFILE_PATH / folder
+        copied = copy_folder_recursive(src, dst, match_filter=match)
+        if copied:
+            print("{:<60} {:<20}".format("Filename", "Status"))
+        print("-" * 80)
+        for file in copied:
+            print("{:<60} {:<20}".format(str(file), "fetched"))
+
+def backup_profiles():
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    backup_dir = BACKUP_PATH / timestamp / "default"
+    print(f"📦 Backing up OrcaSlicer profiles to: {backup_dir}")
+
+    for folder in PROFILE_FOLDERS:
+        src = ORCA_USER_PATH / folder
+        dst = backup_dir / folder
+        copy_folder_recursive(src, dst)
+        print("{:<60} {:<20}".format("Filename", "Status"))
+        print("-" * 80)
+        backed_up = copy_folder_recursive(src, dst)
+        for file in backed_up:
+            print("{:<60} {:<20}".format(str(file), "backed up"))
+
+def restore_backup():
+    print("🔁 Restoring a backup to OrcaSlicer...")
+    if not BACKUP_PATH.exists():
+        print("❌ No backup directory found.")
+        return
+
+    backups = sorted([d for d in BACKUP_PATH.iterdir() if d.is_dir()], reverse=True)
+    if not backups:
+        print("❌ No backups available to restore.")
+        return
+
+    print("Available backups:")
+    for idx, backup in enumerate(backups):
+        print(f"  [{idx}] {backup.name}")
+
+    try:
+        choice = int(input("Select a backup to restore by index: "))
+        selected_backup = backups[choice] / "default"
+    except (ValueError, IndexError):
+        print("❌ Invalid selection.")
+        return
+
+    print(f"⚠️  This will overwrite current OrcaSlicer profiles. Are you sure? (yes/no)")
+    confirm = input().strip().lower()
+    if confirm != "yes":
+        print("❌ Aborted.")
+        return
+
+    for folder in PROFILE_FOLDERS:
+        orca_dir = ORCA_USER_PATH / folder
+        backup_dir = selected_backup / folder
+
+        delete_all_profiles_in(orca_dir)
+        print(f"  🧹 Cleaned: {folder}/")
+
+        copy_folder_recursive(backup_dir, orca_dir)
+        print("{:<60} {:<20}".format("Filename", "Status"))
+        print("-" * 80)
+        restored = copy_folder_recursive(backup_dir, orca_dir)
+        for file in restored:
+            print("{:<60} {:<20}".format(str(file), "restored"))
+
+def orca_push():
+    print("📤 Pushing local profiles to OrcaSlicer after backup...")
+    backup_profiles()
+
+    for folder in PROFILE_FOLDERS:
+        orca_dir = ORCA_USER_PATH / folder
+        local_dir = LOCAL_PROFILE_PATH / folder
+
+        delete_all_profiles_in(orca_dir)
+        print(f"  🧹 Cleaned: {folder}/")
+
+        copy_folder_recursive(local_dir, orca_dir)
+        print("{:<60} {:<20}".format("Filename", "Status"))
+        print("-" * 80)
+        pushed = copy_folder_recursive(local_dir, orca_dir)
+        for file in pushed:
+            print("{:<60} {:<20}".format(str(file), "pushed"))
+
+def orca_push_clean():
+    print("📤 Cleaning and pushing ONLY the managed profiles to OrcaSlicer...")
+    for folder in PROFILE_FOLDERS:
+        orca_dir = ORCA_USER_PATH / folder
+        local_dir = LOCAL_PROFILE_PATH / folder
+
+        copy_folder_recursive(local_dir, orca_dir)
+        print("{:<60} {:<20}".format("Filename", "Status"))
+        print("-" * 80)
+        synced = copy_folder_recursive(local_dir, orca_dir)
+        for file in synced:
+            print("{:<60} {:<20}".format(str(file), "synced"))
+
+def git_fetch():
+    print("🌐 Running `git fetch` in tool root folder ...")
+
+    try:
+        result = subprocess.run(
+            ["git", "fetch"],
+            cwd=GIT_ROOT_PATH,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        print(result.stdout)
+        if result.stderr:
+            print("⚠️", result.stderr)
+    except Exception as e:
+        print(f"❌ Git fetch failed: {e}")
+
+def git_push():
+    print("🔒 Git push placeholder – this operation is disabled for safety.")
+
+import difflib
+
+def orca_diff():
+    print("Comparing OrcaSlicer profiles with local git-tracked profiles:")
+    print("{:<60} {:<20}".format("Filename", "Status"))
+    print("-" * 80)
+    for folder in PROFILE_FOLDERS:
+        orca_dir = ORCA_USER_PATH / folder
+        local_dir = LOCAL_PROFILE_PATH / folder
+
+        orca_files = {f.name: f for f in orca_dir.rglob("*") if f.is_file() and any(m in f.name for m in MANAGED_PROFILE_MARKERS)}
+        local_files = {f.name: f for f in local_dir.rglob("*") if f.is_file() and any(m in f.name for m in MANAGED_PROFILE_MARKERS)}
+
+        all_filenames = set(orca_files.keys()).union(local_files.keys())
+
+        for filename in sorted(all_filenames):
+            status = []
+            orca_file = orca_files.get(filename)
+            local_file = local_files.get(filename)
+
+            if orca_file and not local_file:
+                status.append("only in Orca")
+            elif local_file and not orca_file:
+                status.append("only in Git")
+            elif orca_file and local_file:
+                if orca_file.read_bytes() != local_file.read_bytes():
+                    status.append("differs")
+                else:
+                    status.append("same")
+
+            print("{:<60} {:<20}".format(filename, ", ".join(status)))
+
+            if "differs" in status and orca_file and local_file:
+                print("    --- Orca version vs Git version ---")
+                try:
+                    orca_lines = orca_file.read_text(errors='ignore').splitlines()
+                    local_lines = local_file.read_text(errors='ignore').splitlines()
+                    diff = difflib.unified_diff(local_lines, orca_lines, fromfile='git', tofile='orca', lineterm='')
+                    for line in diff:
+                        print("    " + line)
+                except Exception as e:
+                    print(f"    [Error showing diff: {e}]")
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="🐳 Orca Manager CLI",
+        usage="orca-manager <command>"
+    )
+    subparsers = parser.add_subparsers(dest="command")
+    subparsers.add_parser("diff", help="Show differences between OrcaSlicer and local profiles")
+
+    # Git-related
+    subparsers.add_parser("gitfetch", help="Run 'git fetch' in the repo root")
+    subparsers.add_parser("gitpush", help="(Disabled) Placeholder for pushing to Git")
+
+    # Orca operations
+    subparsers.add_parser("fetch", help="Fetch profiles from OrcaSlicer to local folder")
+    subparsers.add_parser("push", help="Backup and push local profiles to OrcaSlicer (cleans destination)")
+    subparsers.add_parser("push-clean", help="Push local profiles to OrcaSlicer without deleting other user files")
+    subparsers.add_parser("backup", help="Create a backup of current OrcaSlicer profiles")
+    subparsers.add_parser("restore", help="Interactively restore a backup to OrcaSlicer")
+    subparsers.add_parser("list", help="List all managed profiles in OrcaSlicer")
+
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+
+    if args.command == "fetch":
+        orca_fetch()
+    elif args.command == "push":
+        orca_push()
+    elif args.command == "push-clean":
+        orca_push_clean()
+    elif args.command == "backup":
+        backup_profiles()
+    elif args.command == "restore":
+        restore_backup()
+    elif args.command == "list":
+        orca_list()
+    elif args.command == "gitfetch":
+        git_fetch()
+    elif args.command == "gitpush":
+        git_push()
+    elif args.command == "diff":
+        orca_diff()
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()
