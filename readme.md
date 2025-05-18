@@ -1,67 +1,87 @@
 # 🐳 Orca Manager CLI
 
-A CLI tool to manage OrcaSlicer profiles using versioned folders and backups.
+`orca-manager` is a command-line utility to manage OrcaSlicer profiles in a Git-based workflow. It allows teams to safely edit, track, sync, and distribute print profiles with automated validation, backups, and profile flattening logic.
 
-## 📦 Overview
+## Features
 
-This tool allows you to:
-- Fetch profiles from OrcaSlicer to a Git-tracked folder
-- Push profiles back to OrcaSlicer (clean or additive)
-- Create and restore backups
+- Fetch profiles from OrcaSlicer into a local Git folder
+- Push local profiles to OrcaSlicer (with validation and conflict detection)
+- Backup and restore full OrcaSlicer profile states
+- Flatten inherited profiles to standalone JSON files
+- Show diffs between OrcaSlicer and local profiles
+- List and validate managed profiles
+- Git control commands (`fetch`, `commit`, `push`, etc.) from CLI
 
-Profiles are stored in:
-```text
-~/.config/OrcaSlicer/user/default/
-```
+## Usage
 
-The tool maintains a mirrored folder structure in:
-```text
-./orca_profiles/default/
-```
-
-## 🚀 Example Commands
-
-Run any command like this:
+Run with:
 ```bash
-python orca.py <command>
+orca-manager <command> [options]
 ```
 
-### Common Commands
-- `fetch` – Interactively fetch matching profiles from OrcaSlicer
-- `push` – Push profiles and clear out old ones first
-- `push-clean` – Push profiles without deleting existing ones
-- `backup` – Create a timestamped backup of Orca profiles
-- `restore` – Interactively restore from a previous backup
+Call with no arguments or `--help` to view all commands.
+
+## Install
+
+To make `orca-manager` accessible globally:
+```bash
+./install.sh
+```
+This adds an alias to your shell (`~/.bashrc` or `~/.zshrc`).
+
+## Commands
+
+- `fetch` – Fetch profiles from OrcaSlicer to local folder
+- `push` – Push profiles from local folder to OrcaSlicer
+- `push-clean` – Push without cleaning existing files
+- `backup` – Backup current OrcaSlicer profiles
+- `restore` – Interactively restore a previous backup
+- `list` – List all managed profiles currently in OrcaSlicer
+- `diff` – Show differences between local and OrcaSlicer profiles
+- `flatten` – Flatten inherited profiles into standalone ones
+- `validate` – Validate profile structure and inheritance
+- `clone` – Clone a profile into a new one
+- `git` – Perform Git actions (`status`, `commit`, etc.)
+
+## Adding New Commands
+
+All commands live in the `commands/` directory and follow a simple structure.
+Each command is a Python file that implements two functions:
+
+```python
+def register(subparsers):
+    parser = subparsers.add_parser("yourcommand", help="Describe the command")
+    parser.add_argument(...)  # optional CLI arguments
+
+def run(args):
+    # logic that runs when the command is invoked
+    print("Running your command")
+```
+
+### Rules:
+- File must be placed in the `commands/` folder.
+- File name becomes the command name (e.g. `hello.py` → `orca-manager hello`).
+- Globals such as `ORCA_USER_PATH`, `LOCAL_PROFILE_PATH`, etc. are auto-injected.
+
+You can also call another command internally using:
+```python
+import orca
+orca.run_command("backup")
+```
+
+## Notes
+
+- Only files containing `ODG_` or `(ON)` in the filename are considered "managed"
+- All backups are stored in `./backups/`
+- Git operations work on the `./orca_profiles/` folder
+
+## License
+
+This project is internal tooling and currently distributed without a license.
 
 ---
 
-For up-to-date help and all available commands:
+For more details, consult the inline help:
 ```bash
-python orca.py --help
+orca-manager <command> --help
 ```
-
----
-
-## 🛠 Installation
-
-To make the CLI available globally:
-
-1. Make sure you have `install.sh` in the same folder as `orca.py`
-2. Run the installer:
-   ```bash
-   ./install.sh
-   ```
-3. Restart your terminal or run:
-   ```bash
-   source ~/.bashrc   # or ~/.zshrc
-   ```
-4. You can now run:
-   ```bash
-   orca-manager fetch
-   ```
-
-The install script will:
-- Symlink the CLI as `orca-manager`
-- Add its path to your shell config if needed
-
-
