@@ -15,11 +15,14 @@ LOCAL_PROFILE_PATH = LOCAL_ROOT / "orca_profiles" / "default"
 GIT_ROOT_PATH = LOCAL_PROFILE_PATH
 BACKUP_PATH = LOCAL_ROOT / "backups"
 PROFILE_FOLDERS = ["filament", "machine", "process"]
-#MANAGED_PROFILE_MARKERS = ["ODG_", "(ON)"]
-MANAGED_PROFILE_MARKERS = [""]
+MANAGED_PROFILE_MARKERS = ["ODG_", "(ON)"]
+#MANAGED_PROFILE_MARKERS = [""]
 
 COMMANDS_DIR = LOCAL_ROOT / "commands"
 
+BACKUP_WARNING_LIMIT = 25
+RED = "\033[91m"
+RESET = "\033[0m"
 
 def load_commands(parser):
     subparsers = parser.add_subparsers(dest="command")
@@ -46,6 +49,13 @@ def load_commands(parser):
 
     return command_funcs
 
+def check_backup_count():
+    if BACKUP_PATH.exists():
+        backup_folders = [d for d in BACKUP_PATH.iterdir() if d.is_dir()]
+        if len(backup_folders) > BACKUP_WARNING_LIMIT:
+            print(f"{RED}⚠️  Warning: You have {len(backup_folders)} backups stored.")
+            print("   Consider cleaning up old backups to save disk space.", RESET)
+
 def run_command(command_name: str, args_dict: dict = {}):
     """Run another command from within a command script."""
     parser = argparse.ArgumentParser()
@@ -69,6 +79,8 @@ def main():
     )
 
     command_funcs = load_commands(parser)
+
+    check_backup_count()
 
     args = parser.parse_args()
 

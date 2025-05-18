@@ -5,7 +5,7 @@ def register(subparsers):
     subparsers.add_parser("validate", help="Validate OrcaSlicer profiles for syntax, structure, and inheritance")
 
 def run(args):
-    print("🔍 Validating OrcaSlicer user profile files...\\n")
+    print("🔍 Validating OrcaSlicer user profile files...\n")
     issues = []
 
     for profile_type in PROFILE_FOLDERS:
