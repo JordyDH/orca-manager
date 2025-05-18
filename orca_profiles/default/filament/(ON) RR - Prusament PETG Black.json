@@ -35,7 +35,7 @@
     "compatible_prints": [],
     "compatible_prints_condition": "",
     "complete_print_exhaust_fan_speed": [
-        "80"
+        "8"
     ],
     "cool_plate_temp": [
         "60"
