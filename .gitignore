@@ -1,6 +1,10 @@
 __pycache__
+
 backups/
 base/
-orca_profiles/
+#orca_profiles/
 orca_repositories/
+
 orca-manager
+
+*.old

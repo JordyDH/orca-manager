@@ -1,0 +1,263 @@
+{
+    "adaptive_bed_mesh_margin": "0",
+    "auxiliary_fan": "0",
+    "bbl_use_printhost": "0",
+    "bed_custom_model": "",
+    "bed_custom_texture": "",
+    "bed_exclude_area": [
+        "0x0"
+    ],
+    "bed_mesh_max": "99999,99999",
+    "bed_mesh_min": "-99999,-99999",
+    "bed_mesh_probe_distance": "50,50",
+    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n_ON_LAYER_CHANGE LAYER={layer_num + 1}",
+    "best_object_pos": "0.5,0.5",
+    "change_extrusion_role_gcode": "",
+    "change_filament_gcode": "",
+    "cooling_tube_length": "5",
+    "cooling_tube_retraction": "91.5",
+    "default_filament_profile": [],
+    "default_print_profile": "",
+    "deretraction_speed": [
+        "120",
+        "120"
+    ],
+    "disable_m73": "0",
+    "emit_machine_limits_to_gcode": "1",
+    "enable_filament_ramming": "1",
+    "enable_long_retraction_when_cut": "0",
+    "extra_loading_move": "-2",
+    "extruder_clearance_height_to_lid": "140",
+    "extruder_clearance_height_to_rod": "25",
+    "extruder_clearance_radius": "45",
+    "extruder_colour": [
+        "",
+        ""
+    ],
+    "extruder_offset": [
+        "0x0",
+        "0x0"
+    ],
+    "fan_kickstart": "0.3",
+    "fan_speedup_overhangs": "0",
+    "fan_speedup_time": "1",
+    "from": "User",
+    "gcode_flavor": "klipper",
+    "head_wrap_detect_zone": [],
+    "high_current_on_filament_swap": "0",
+    "host_type": "octoprint",
+    "inherits": "",
+    "is_custom_defined": "0",
+    "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
+    "long_retractions_when_cut": [
+        "0",
+        "0"
+    ],
+    "machine_end_gcode": "M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n",
+    "machine_load_filament_time": "0",
+    "machine_max_acceleration_e": [
+        "5000",
+        "5000"
+    ],
+    "machine_max_acceleration_extruding": [
+        "20000",
+        "20000"
+    ],
+    "machine_max_acceleration_retracting": [
+        "20000",
+        "20000"
+    ],
+    "machine_max_acceleration_travel": [
+        "20000",
+        "20000"
+    ],
+    "machine_max_acceleration_x": [
+        "20000",
+        "20000"
+    ],
+    "machine_max_acceleration_y": [
+        "20000",
+        "20000"
+    ],
+    "machine_max_acceleration_z": [
+        "200",
+        "200"
+    ],
+    "machine_max_jerk_e": [
+        "5",
+        "5"
+    ],
+    "machine_max_jerk_x": [
+        "5",
+        "5"
+    ],
+    "machine_max_jerk_y": [
+        "5",
+        "5"
+    ],
+    "machine_max_jerk_z": [
+        "0.4",
+        "0.4"
+    ],
+    "machine_max_speed_e": [
+        "120",
+        "120"
+    ],
+    "machine_max_speed_x": [
+        "500",
+        "500"
+    ],
+    "machine_max_speed_y": [
+        "500",
+        "500"
+    ],
+    "machine_max_speed_z": [
+        "200",
+        "200"
+    ],
+    "machine_min_extruding_rate": [
+        "0",
+        "0"
+    ],
+    "machine_min_travel_rate": [
+        "0",
+        "0"
+    ],
+    "machine_pause_gcode": "PAUSE",
+    "machine_start_gcode": ";;heatsoak the system and gantry\nHEAT_SOAK TARGET=100 DURATION=60\nMAYBE_HOME\nIDEX_MIRROR\nSTART_PRINT EXTRUDER_TEMP={first_layer_temperature[0]},{first_layer_temperature[1]} EXTRUDER_OTHER_LAYER_TEMP={temperature[0]},{temperature[1]} BED_TEMP=[first_layer_bed_temperature] INITIAL_TOOL={initial_tool} TOTAL_LAYER_COUNT={total_layer_count} X0={first_layer_print_min[0]} Y0={first_layer_print_min[1]} X1={first_layer_print_max[0]} Y1={first_layer_print_max[1]}",
+    "machine_tool_change_time": "0",
+    "machine_unload_filament_time": "0",
+    "manual_filament_change": "0",
+    "max_layer_height": [
+        "0.3",
+        "0.3"
+    ],
+    "min_layer_height": [
+        "0.06",
+        "0.06"
+    ],
+    "name": "(ON) VC4-1 IDEX 500 MIRROR MODE 0.6 nozzle",
+    "nozzle_diameter": [
+        "0.6",
+        "0.6"
+    ],
+    "nozzle_height": "2.5",
+    "nozzle_hrc": "0",
+    "nozzle_type": "hardened_steel",
+    "nozzle_volume": "0",
+    "parking_pos_retraction": "92",
+    "pellet_modded_printer": "0",
+    "preferred_orientation": "0",
+    "print_host": "http://192.168.30.201",
+    "print_host_webui": "",
+    "printable_area": [
+        "125x0",
+        "345x0",
+        "345x500",
+        "125x500"
+    ],
+    "printable_height": "500",
+    "printer_model": "RatRig V-Core 4 IDEX 500 MIRROR MODE",
+    "printer_notes": "",
+    "printer_settings_id": "(ON) VC4-1 IDEX 500 MIRROR MODE 0.6 nozzle",
+    "printer_structure": "undefine",
+    "printer_technology": "FFF",
+    "printer_variant": "0.6",
+    "printhost_apikey": "",
+    "printhost_authorization_type": "key",
+    "printhost_cafile": "",
+    "printhost_password": "",
+    "printhost_port": "",
+    "printhost_ssl_ignore_revoke": "0",
+    "printhost_user": "",
+    "printing_by_object_gcode": ";BETWEEN_OBJECTS\nG92 E0",
+    "purge_in_prime_tower": "1",
+    "retract_before_wipe": [
+        "70%",
+        "70%"
+    ],
+    "retract_length_toolchange": [
+        "10",
+        "10"
+    ],
+    "retract_lift_above": [
+        "0",
+        "0"
+    ],
+    "retract_lift_below": [
+        "0",
+        "0"
+    ],
+    "retract_lift_enforce": [
+        "All Surfaces",
+        "All Surfaces"
+    ],
+    "retract_on_top_layer": [
+        "1",
+        "1"
+    ],
+    "retract_restart_extra": [
+        "0",
+        "0"
+    ],
+    "retract_restart_extra_toolchange": [
+        "0",
+        "0"
+    ],
+    "retract_when_changing_layer": [
+        "0",
+        "0"
+    ],
+    "retraction_distances_when_cut": [
+        "18",
+        "18"
+    ],
+    "retraction_length": [
+        "0.8",
+        "0.8"
+    ],
+    "retraction_minimum_travel": [
+        "2",
+        "2"
+    ],
+    "retraction_speed": [
+        "120",
+        "120"
+    ],
+    "scan_first_layer": "0",
+    "silent_mode": "0",
+    "single_extruder_multi_material": "0",
+    "support_air_filtration": "1",
+    "support_chamber_temp_control": "1",
+    "support_multi_bed_types": "0",
+    "template_custom_gcode": "",
+    "thumbnails": "64x64/PNG, 100x100/PNG, 400x300/PNG",
+    "thumbnails_format": "PNG",
+    "time_cost": "0",
+    "time_lapse_gcode": "TIMELAPSE_TAKE_FRAME",
+    "travel_slope": [
+        "3",
+        "3"
+    ],
+    "upward_compatible_machine": [],
+    "use_firmware_retraction": "0",
+    "use_relative_e_distances": "1",
+    "version": "2.3.0.3",
+    "wipe": [
+        "0",
+        "0"
+    ],
+    "wipe_distance": [
+        "1",
+        "1"
+    ],
+    "z_hop": [
+        "0.6",
+        "0.6"
+    ],
+    "z_hop_types": [
+        "Slope Lift",
+        "Slope Lift"
+    ],
+    "z_offset": "0"
+}
